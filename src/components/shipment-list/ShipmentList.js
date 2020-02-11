@@ -3,6 +3,8 @@ import MaterialTable from 'material-table';
 
 import DetailModal from './../common/DetailModal';
 
+const URL = 'http://localhost:3007';
+
 class ShipmentList extends Component {
   state = {
     showDetailModal: false,
@@ -20,23 +22,6 @@ class ShipmentList extends Component {
     return (
       <Fragment>
         <MaterialTable
-          actions={[
-            {
-              icon: 'remove_red_eye',
-              tooltip: 'View Shipment Detail',
-              onClick: (event, rowData) => {
-                this.setState({
-                  showDetailModal: true,
-                  selectedShipment: rowData
-                });
-              }
-            },
-            {
-              icon: 'trash',
-              tooltip: 'Delete Shipment',
-              onClick: (event, rowData) => {}
-            }
-          ]}
           title='Shipment'
           columns={[
             { title: 'Id', field: 'id' },
@@ -48,7 +33,7 @@ class ShipmentList extends Component {
           ]}
           data={query =>
             new Promise((resolve, reject) => {
-              let url = 'http://localhost:3007/shipments?';
+              let url = `${URL}/shipments?`;
               url += '_limit=' + query.pageSize;
               url += '&_page=' + (query.page + 1);
               fetch(url)
@@ -68,6 +53,40 @@ class ShipmentList extends Component {
                 });
             })
           }
+          editable={{
+            onRowAdd: newData =>
+              new Promise((resolve, reject) => {
+                setTimeout(() => {
+                  fetch(`${URL}/shipments`, {
+                    method: 'post',
+                    body: JSON.stringify(newData)
+                  }).then(async () => {
+                    resolve();
+                  });
+                }, 1000);
+              }),
+            onRowUpdate: (newData, oldData) =>
+              new Promise((resolve, reject) => {
+                setTimeout(() => {
+                  fetch(`${URL}/shipments/${oldData.id}`, {
+                    method: 'put',
+                    body: JSON.stringify(newData)
+                  }).then(async () => {
+                    resolve();
+                  });
+                }, 1000);
+              }),
+            onRowDelete: oldData =>
+              new Promise((resolve, reject) => {
+                setTimeout(() => {
+                  fetch(`${URL}/shipments/${oldData.id}`, {
+                    method: 'delete'
+                  }).then(async () => {
+                    resolve();
+                  });
+                }, 1000);
+              })
+          }}
         />
         <DetailModal
           show={this.state.showDetailModal}
